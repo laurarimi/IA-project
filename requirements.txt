@@ -52,7 +52,7 @@ gst-plugins-base=1.18.5=h9e645db_0
 gstreamer=1.18.5=hd78058f_0
 h5py=2.10.0=py37h5e291fa_0
 hdf5=1.10.4=h7ebc959_0
-huggingface_hub=0.11.0=py_0
+huggingface_hub=0.11.0=pyhd8ed1ab_0
 icc_rt=2022.1.0=h6049295_2
 icu=58.2=ha925a31_3
 idna=3.4=py37haa95532_0
