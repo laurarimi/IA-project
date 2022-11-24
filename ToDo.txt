@@ -1,0 +1,6 @@
+1- Buscar y reentrenar modelos de Hugging Face 
+2- Procesar y buscar datasets que relaciona texto con sentimiento
+3- Generar los espectrogramas de los audios que tenemos 
+4- Diseño de Redes (Papers)
+5- 
+6- 
