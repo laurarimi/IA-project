@@ -8,7 +8,10 @@
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
 
+
 *.h5
+=======
+
 # IPython
 profile_default/
 ipython_config.py
@@ -24,6 +27,10 @@ __pycache__/
 
 # C extensions
 *.so
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2dd9b74ae6028aeb6597e47cdcefdc428eb3c60b
 # Distribution / packaging
 .Python
 build/
