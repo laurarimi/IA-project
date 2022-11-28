@@ -13,9 +13,14 @@ import tensorflow as tf
 import keras
 import os
 
+
+def from_oga_to_wav(filename):
+    os.system("ffmpeg -i {0}.oga  {0}.wav".format(filename))
+
+
 files = {}
 
-emotions = ["anger", "boredorm", "calm", "disgust", "fear", "happiness", "sadness", "surprised", "neutral"]
+emotions = ["anger", "boredorm", "fear", "happiness", "sadness", "surprised"]
 
 model = keras.models.load_model("LauraModel.h5")
 bot = telebot.TeleBot(token)
@@ -30,7 +35,7 @@ def sendInfo(message):
 def processInput(message):
     print('Recibido')
     file_info = bot.get_file(message.voice.file_id)
-    file = requests.get('https://api.telegram.org/file/bot{0}/{1}'.format(token, file_info.file_path)).content
+    file = from_oga_to_wav(requests.get('https://api.telegram.org/file/bot{0}/{1}'.format(token, file_info.file_path)).content)
     #markup = types.ForceReply()
     #sentMessage = bot.send_message(message.chat.id, "Choose one emotion:\n", reply_to_message_id=message.id, reply_markup=markup)
     # markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
@@ -52,11 +57,11 @@ def processInput(message):
         files[message.chat.id] = {message.id : file}
     
     try:
-        with open(f"./Bot/files/{message.chat.id}/{message.id}.oga", 'wb') as f:
+        with open(f"./Bot/files/{message.chat.id}/{message.id}.wav", 'wb') as f:
             f.write(file)
     except:
         os.mkdir(f"./Bot/files/{message.chat.id}")
-        with open(f"./Bot/files/{message.chat.id}/{message.id}.oga", 'wb') as f:
+        with open(f"./Bot/files/{message.chat.id}/{message.id}.wav", 'wb') as f:
             f.write(file)
     print(message.chat.id, message.id)
 
@@ -68,7 +73,7 @@ def callback(call):
         messageReplyId = call.message.reply_to_message.id
         print(chat_id, messageReplyId)
         file = files[chat_id][messageReplyId]        
-        signal, sr = librosa.load(f'./Bot/files/{chat_id}/{messageReplyId}.oga')
+        signal, sr = librosa.load(f'./Bot/files/{chat_id}/{messageReplyId}.wav')
         mel_signal = librosa.feature.melspectrogram(y=signal, sr=sr, hop_length=512, n_fft=2048)
         spectrogram = np.abs(mel_signal)
         power_to_db = librosa.power_to_db(spectrogram, ref=np.max)
@@ -76,7 +81,7 @@ def callback(call):
         librosa.display.specshow(power_to_db, sr=sr, cmap="magma",hop_length=512)
         path = f"./Bot/Dataset/{text}/{chat_id}{messageReplyId}.png"
         plt.savefig(path, bbox_inches='tight', pad_inches=0)
-        os.remove(f'./Bot/files/{chat_id}/{messageReplyId}.oga')
+        os.remove(f'./Bot/files/{chat_id}/{messageReplyId}.wav')
         im = PIL.Image.open(path)
         a = np.asarray(im)[:,:,:3]
         print(model.fit(np.expand_dims(a, axis=0), np.array([emotions.index(text)])))
