@@ -1,1 +1,2 @@
 https://importchris.medium.com/how-to-create-understand-mel-spectrograms-ff7634991056
+https://stackoverflow.com/questions/60463829/training-tfbertforsequenceclassification-with-custom-x-and-y-data
