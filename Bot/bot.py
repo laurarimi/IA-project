@@ -31,23 +31,59 @@ def processInput(message):
     print('Recibido')
     file_info = bot.get_file(message.voice.file_id)
     file = requests.get('https://api.telegram.org/file/bot{0}/{1}'.format(token, file_info.file_path)).content
-    markup = types.ForceReply()
-    sentMessage = bot.send_message(message.chat.id, "Choose one emotion:\n" + ", ".join(emotions), reply_to_message_id=message.id, reply_markup=markup)
+    #markup = types.ForceReply()
+    #sentMessage = bot.send_message(message.chat.id, "Choose one emotion:\n", reply_to_message_id=message.id, reply_markup=markup)
+    # markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+    # for emotion in emotions:
+    #     markup.add(types.KeyboardButton(emotion))
+    # sentMessage = bot.send_message(message.chat.id, "Choose one emotion:\n", reply_to_message_id=message.id, reply_markup=markup)
+
+    # markup = types.InlineKeyboardMarkup()
+    # for emotion in emotions:
+    #     markup.add(types.InlineKeyboardButton(text=emotion, callback_data = emotion))
+    markup = {}
+    for emotion in emotions:
+        markup[emotion] = {'callback_data': emotion}
+    markup = telebot.util.quick_markup(markup, row_width=2)
+    sentMessage = bot.send_message(message.chat.id, "Choose one emotion:",reply_to_message_id=message.id,reply_markup=markup)
     try:
-        files[message.chat.id][sentMessage.id] = file
+        files[message.chat.id][message.id] = file
     except:
-        files[message.chat.id] = {sentMessage.id : file}
+        files[message.chat.id] = {message.id : file}
     
     try:
-        with open(f"./Bot/files/{message.chat.id}/{sentMessage.id}.oga", 'wb') as f:
+        with open(f"./Bot/files/{message.chat.id}/{message.id}.oga", 'wb') as f:
             f.write(file)
     except:
         os.mkdir(f"./Bot/files/{message.chat.id}")
-        with open(f"./Bot/files/{message.chat.id}/{sentMessage.id}.oga", 'wb') as f:
+        with open(f"./Bot/files/{message.chat.id}/{message.id}.oga", 'wb') as f:
             f.write(file)
-    print(message.chat.id, sentMessage.id)
+    print(message.chat.id, message.id)
 
-
+@bot.callback_query_handler(func=lambda call: True)
+def callback(call):
+    if(call.message):
+        text         = call.data.strip()
+        chat_id      = call.message.chat.id
+        messageReplyId = call.message.reply_to_message.id
+        print(chat_id, messageReplyId)
+        file = files[chat_id][messageReplyId]        
+        signal, sr = librosa.load(f'./Bot/files/{chat_id}/{messageReplyId}.oga')
+        mel_signal = librosa.feature.melspectrogram(y=signal, sr=sr, hop_length=512, n_fft=2048)
+        spectrogram = np.abs(mel_signal)
+        power_to_db = librosa.power_to_db(spectrogram, ref=np.max)
+        plt.axis('off')
+        librosa.display.specshow(power_to_db, sr=sr, cmap="magma",hop_length=512)
+        path = f"./Bot/Dataset/{text}/{chat_id}{messageReplyId}.png"
+        plt.savefig(path, bbox_inches='tight', pad_inches=0)
+        os.remove(f'./Bot/files/{chat_id}/{messageReplyId}.oga')
+        im = PIL.Image.open(path)
+        a = np.asarray(im)[:,:,:3]
+        print(model.fit(np.expand_dims(a, axis=0), np.array([emotions.index(text)])))
+        bot.delete_message(chat_id=chat_id, message_id=call.message.id)
+        bot.send_message( chat_id, "Your audio has been processed. Thank you :)")
+    
+''' 
 @bot.message_handler(func=lambda message: message.reply_to_message is not None)
 def classificate(message):
     text         = message.text.lower().strip()
@@ -70,6 +106,8 @@ def classificate(message):
     else:
         markup = types.ForceReply()
         bot.reply_to(message.reply_to_message, "Choose one emotion:\n" + ", ".join(emotions), reply_markup=markup)
+'''
+
 
 
 bot.infinity_polling()
