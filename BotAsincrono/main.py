@@ -9,18 +9,27 @@ import librosa.display
 import numpy as np
 import matplotlib as plt
 import zmq.asyncio
+import struct
 
 ctx = zmq.asyncio.Context()
 
 socketVGG = ctx.socket(zmq.REQ)
+# Esto es para el bot que se entrena
 remoteIP = "127.0.0.1"
 remotePort = "9999"
 socketVGG.connect(f"tcp://{remoteIP}:{remotePort}")
 
+# Esto es para el bot que predice
+remoteIPPred    = "127.0.0.1"
+remotePortPred  = "8888"
+socketPred      = ctx.socket(zmq.REQ)
+socketPred.connect(f"tcp://{remoteIP}:{remotePort}")
+
+
 token = "5935648980:AAEuRoMJVCKb1RFSFdN9Z9UinxrBNnz4TYo"
 bot   = AsyncTeleBot(token=token)
 emotions = ["angry", "fearful", "happy", "sad", "surprised"]
-
+to_predict = list()
 
 async def from_oga_to_wav(filename):
     await asyncio.create_subprocess_shell(
@@ -33,13 +42,34 @@ async def from_oga_to_wav(filename):
 async def send_welcome(message):
     await bot.reply_to(message, "Hi, this is EMOTION4ALLBOT.\nA bot used to make a large dataset of audio message with the feeling they are related to.\nIf u want to help us just send and audio message and select the feeling it is related to.")
 
+
+@bot.message_handler(commands=['predict'])
+async def predict_command(message):
+    markup = telebot.types.ForceReply()
+    msg = await bot.reply_to(message,"Reply to this message with and audio",reply_markup=markup)
+    to_predict.append(msg.id)
+
 @bot.message_handler(content_types=['voice', 'audio'])
 async def processInput(message):
-    markup = {}
-    for emotion in emotions:
-        markup[emotion] = {'callback_data': emotion}
-    markup = telebot.util.quick_markup(markup, row_width=2)
-    await bot.send_message(message.chat.id, "Choose one emotion:",reply_to_message_id=message.id,reply_markup=markup)
+    chat_id      = message.chat.id
+    messageReplyId = message.reply_to_message.id
+    if(messageReplyId and messageReplyId in to_predict):
+        to_predict.remove(messageReplyId)        
+        file_info = await bot.get_file(message.voice.file_id)
+        downloaded_file = await bot.download_file(file_info.file_path)
+        await socketPred.send_multipart([
+            chat_id.to_bytes((chat_id.bit_length() + 7) // 8, 'big'),
+            messageReplyId.to_bytes((messageReplyId.bit_length() + 7) // 8, 'big'),
+            downloaded_file
+        ])
+        msg = await socketPred.recv_multipart()
+        await bot.reply_to(message, f"Prediction:{emotions[int.from_bytes(msg[0], 'big')]}\nConfidence:{struct.unpack('f',msg[1])[0]*100}")
+    else:
+        markup = {}
+        for emotion in emotions:
+            markup[emotion] = {'callback_data': emotion}
+        markup = telebot.util.quick_markup(markup, row_width=2)
+        await bot.send_message(message.chat.id, "Choose one emotion:",reply_to_message_id=message.id,reply_markup=markup)
 
 
 @bot.callback_query_handler(func=lambda call: True)
