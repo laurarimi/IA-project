@@ -36,16 +36,6 @@ def processInput(message):
     print('Recibido')
     file_info = bot.get_file(message.voice.file_id)
     file = from_oga_to_wav(requests.get('https://api.telegram.org/file/bot{0}/{1}'.format(token, file_info.file_path)).content)
-    #markup = types.ForceReply()
-    #sentMessage = bot.send_message(message.chat.id, "Choose one emotion:\n", reply_to_message_id=message.id, reply_markup=markup)
-    # markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-    # for emotion in emotions:
-    #     markup.add(types.KeyboardButton(emotion))
-    # sentMessage = bot.send_message(message.chat.id, "Choose one emotion:\n", reply_to_message_id=message.id, reply_markup=markup)
-
-    # markup = types.InlineKeyboardMarkup()
-    # for emotion in emotions:
-    #     markup.add(types.InlineKeyboardButton(text=emotion, callback_data = emotion))
     markup = {}
     for emotion in emotions:
         markup[emotion] = {'callback_data': emotion}
