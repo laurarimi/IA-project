@@ -10,6 +10,8 @@ import numpy as np
 import os
 import PIL
 import PIL.Image
+import subprocess
+import aiofiles
 
 model                = keras.models.load_model("../Model/model-laura-ad-hoc-2.h5")
 validation_generator = tf.keras.utils.image_dataset_from_directory("data", color_mode="rgb",image_size=(128,157))
@@ -36,8 +38,10 @@ async def process(msg):
             f.write(msg[-1])
     except:
         os.mkdir(f"./Files/{chat_id}")
-        with open(f"./Files/{chat_id}/{messageReplyId}.oga", 'wb') as f:
+        with aiofiles.open(f"./Files/{chat_id}/{messageReplyId}.oga", 'wb') as f:
             await f.write(msg[-1])
+        await subprocess.run(['ffmpeg', '-i',f"./Files/{chat_id}/{messageReplyId}.oga", f"./Files/{chat_id}/{messageReplyId}.wav"])
+        os.remove(f"./Files/{chat_id}/{messageReplyId}.oga")
     print("Guardado")
 
     signal, sr = librosa.load(f'./Files/{chat_id}/{messageReplyId}.oga')
