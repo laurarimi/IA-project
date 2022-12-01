@@ -19,7 +19,7 @@ model = keras.models.load_model("model-laura-ad-hoc-2.h5")
 ctx = zmq.asyncio.Context()
        
 socket = ctx.socket(zmq.REP)
-socket.bind("tcp://127.0.0.1:9999")
+socket.bind("tcp://*:9999")
 
 async def recv_and_process():
     while True:

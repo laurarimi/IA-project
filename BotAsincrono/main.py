@@ -15,12 +15,12 @@ ctx = zmq.asyncio.Context()
 
 socketVGG = ctx.socket(zmq.REQ)
 # Esto es para el bot que se entrena
-remoteIP = "127.0.0.1"
+remoteIP = "158.42.176.213"
 remotePort = "9999"
 socketVGG.connect(f"tcp://{remoteIP}:{remotePort}")
 
 # Esto es para el bot que predice
-remoteIPPred    = "127.0.0.1"
+remoteIPPred    = "158.42.176.208"
 remotePortPred  = "8888"
 socketPred      = ctx.socket(zmq.REQ)
 socketPred.connect(f"tcp://{remoteIP}:{remotePort}")

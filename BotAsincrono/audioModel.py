@@ -18,7 +18,7 @@ validation_generator = tf.keras.utils.image_dataset_from_directory("data", color
 ctx = zmq.asyncio.Context()
        
 socket = ctx.socket(zmq.REP)
-socket.bind("tcp://127.0.0.1:9999")
+socket.bind("tcp://*:9999")
 
 async def recv_and_process():
     while True:
