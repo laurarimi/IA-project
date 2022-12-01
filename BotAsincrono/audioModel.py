@@ -44,7 +44,7 @@ async def process(msg):
         os.remove(f"./Files/{chat_id}/{messageReplyId}.oga")
     print("Guardado")
 
-    signal, sr = librosa.load(f'./Files/{chat_id}/{messageReplyId}.oga')
+    signal, sr = librosa.load(f'./Files/{chat_id}/{messageReplyId}.wav')
     mel_signal = librosa.feature.melspectrogram(y=signal, sr=sr, hop_length=512, n_fft=2048)
     spectrogram = np.abs(mel_signal)
     power_to_db = librosa.power_to_db(spectrogram, ref=np.max)
