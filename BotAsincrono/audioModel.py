@@ -40,7 +40,7 @@ async def process(msg):
         os.mkdir(f"./Files/{chat_id}")
         with aiofiles.open(f"./Files/{chat_id}/{messageReplyId}.oga", 'wb') as f:
             await f.write(msg[-1])
-        await subprocess.run(['ffmpeg', '-i',f"./Files/{chat_id}/{messageReplyId}.oga", f"./Files/{chat_id}/{messageReplyId}.wav"])
+        subprocess.run(['ffmpeg', '-i',f"./Files/{chat_id}/{messageReplyId}.oga", f"./Files/{chat_id}/{messageReplyId}.wav"])
         os.remove(f"./Files/{chat_id}/{messageReplyId}.oga")
     print("Guardado")
 
