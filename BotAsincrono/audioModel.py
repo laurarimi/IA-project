@@ -12,6 +12,7 @@ import PIL
 import PIL.Image
 import subprocess
 import aiofiles
+from scipy.io import wavfile
 
 model                = keras.models.load_model("../Model/model-laura-ad-hoc-2.h5")
 validation_generator = tf.keras.utils.image_dataset_from_directory("data", color_mode="rgb",image_size=(128,157))
@@ -39,6 +40,15 @@ async def process(msg):
         await f.write(msg[-1])
     os.system(f'ffmpeg -i ./Files/{chat_id}/{messageReplyId}.oga ./Files/{chat_id}/{messageReplyId}.wav')
     os.remove(f"./Files/{chat_id}/{messageReplyId}.oga")
+    fs, signal = wavfile.read( f"./Files/{chat_id}/{messageReplyId}.wav") 
+    #signal = signal / ( 2 ** 15 ) 
+    signal_len = len(signal) 
+    segment_size_t = 3 # segment size in seconds 
+    segment_size = segment_size_t * fs # segment size in samples # Break signal into list of segments in a single-line Python code 
+    segments = np.array([signal[x:x + segment_size] for x in np.arange( 0 , signal_len, segment_size)]) # Save each segment in a seperate filename 
+
+    for iS, s in enumerate(segments): 
+        audio_1 = wavfile.write( f"./Files/{chat_id}/{messageReplyId}.wav" .format(segment_size_t * iS, segment_size_t * (iS + 1 )),fs, (s))
     print("Guardado")
 
     signal, sr = librosa.load(f'./Files/{chat_id}/{messageReplyId}.wav')
