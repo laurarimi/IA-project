@@ -33,13 +33,12 @@ async def process(msg):
     messageReplyId = int.from_bytes(msg[1], 'big')
     text = msg[2].decode('UTF-8')
     cEmotion = int.from_bytes(msg[3], 'big')
-    try:        
+    if(f"{chat_id}" not in os.listdir("./Files/")):    
         os.mkdir(f"./Files/{chat_id}")
-    except:
-        with aiofiles.open(f"./Files/{chat_id}/{messageReplyId}.oga", 'wb') as f:
-            await f.write(msg[-1])
-        await os.system(f'ffmpeg -i ./Files/{chat_id}/{messageReplyId}.oga ./Files/{chat_id}/{messageReplyId}.wav')
-        await os.remove(f"./Files/{chat_id}/{messageReplyId}.oga")
+    async with aiofiles.open(f"./Files/{chat_id}/{messageReplyId}.oga", 'wb') as f:
+        await f.write(msg[-1])
+    os.system(f'ffmpeg -i ./Files/{chat_id}/{messageReplyId}.oga ./Files/{chat_id}/{messageReplyId}.wav')
+    os.remove(f"./Files/{chat_id}/{messageReplyId}.oga")
     print("Guardado")
 
     signal, sr = librosa.load(f'./Files/{chat_id}/{messageReplyId}.wav')
