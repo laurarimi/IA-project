@@ -15,15 +15,15 @@ ctx = zmq.asyncio.Context()
 
 socketVGG = ctx.socket(zmq.REQ)
 # Esto es para el bot que se entrena
-remoteIP = "158.42.176.213"
+remoteIP = "158.42.176.208"
 remotePort = "9999"
 socketVGG.connect(f"tcp://{remoteIP}:{remotePort}")
 
 # Esto es para el bot que predice
-remoteIPPred    = "158.42.176.208"
-remotePortPred  = "8888"
+remoteIPPred    = "158.42.176.213"
+remotePortPred  = "9999"
 socketPred      = ctx.socket(zmq.REQ)
-socketPred.connect(f"tcp://{remoteIP}:{remotePort}")
+socketPred.connect(f"tcp://{remoteIPPred}:{remotePortPred}")
 
 
 token = "5935648980:AAEuRoMJVCKb1RFSFdN9Z9UinxrBNnz4TYo"
@@ -51,19 +51,20 @@ async def predict_command(message):
 
 @bot.message_handler(content_types=['voice', 'audio'])
 async def processInput(message):
-    chat_id      = message.chat.id
-    messageReplyId = message.reply_to_message.id
-    if(messageReplyId and messageReplyId in to_predict):
-        to_predict.remove(messageReplyId)        
-        file_info = await bot.get_file(message.voice.file_id)
-        downloaded_file = await bot.download_file(file_info.file_path)
-        await socketPred.send_multipart([
-            chat_id.to_bytes((chat_id.bit_length() + 7) // 8, 'big'),
-            messageReplyId.to_bytes((messageReplyId.bit_length() + 7) // 8, 'big'),
-            downloaded_file
-        ])
-        msg = await socketPred.recv_multipart()
-        await bot.reply_to(message, f"Prediction:{emotions[int.from_bytes(msg[0], 'big')]}\nConfidence:{struct.unpack('f',msg[1])[0]*100}")
+    chat_id        = message.chat.id
+    if(message.reply_to_message):
+        messageReplyId = message.reply_to_message.id
+        if(messageReplyId and messageReplyId in to_predict):
+            to_predict.remove(messageReplyId)        
+            file_info = await bot.get_file(message.voice.file_id)
+            downloaded_file = await bot.download_file(file_info.file_path)
+            await socketPred.send_multipart([
+                chat_id.to_bytes((chat_id.bit_length() + 7) // 8, 'big'),
+                messageReplyId.to_bytes((messageReplyId.bit_length() + 7) // 8, 'big'),
+                downloaded_file
+            ])
+            msg = await socketPred.recv_multipart()
+            await bot.reply_to(message, f"Prediction:{emotions[int.from_bytes(msg[0], 'big')]}\nConfidence:{0:.2f}".format(struct.unpack('f',msg[1])[0]*100))
     else:
         markup = {}
         for emotion in emotions:

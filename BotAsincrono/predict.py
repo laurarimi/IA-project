@@ -26,6 +26,9 @@ async def recv_and_process():
         msg = await socket.recv_multipart()
         pred = await predict(msg)
         index = int(np.argmax(pred))
+        print(pred)
+        print(np.argmax(pred))
+        print(index)
         await socket.send_multipart([
             index.to_bytes((index.bit_length() + 7) // 8, 'big'),
             struct.pack("f", pred[0,index])
