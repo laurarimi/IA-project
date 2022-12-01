@@ -11,7 +11,7 @@ import os
 import PIL
 import PIL.Image
 
-model                = keras.models.load_model("model-laura-ad-hoc-2.h5")
+model                = keras.models.load_model("../Model/model-laura-ad-hoc-2.h5")
 validation_generator = tf.keras.utils.image_dataset_from_directory("data", color_mode="rgb",image_size=(128,157))
 
 

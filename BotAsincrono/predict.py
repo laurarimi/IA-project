@@ -12,7 +12,7 @@ import PIL
 import PIL.Image
 import struct
 
-model = keras.models.load_model("model-laura-ad-hoc-2.h5")
+model = keras.models.load_model("../Model/model-laura-ad-hoc-2.h5")
 
 
 
