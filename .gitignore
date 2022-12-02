@@ -9,6 +9,8 @@
 */.ipynb_checkpoints/*
 
 
+*.oga
+*.wav
 *.h5
 =======
 
