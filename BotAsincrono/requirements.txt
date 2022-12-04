@@ -65,6 +65,7 @@ pyasn1-modules==0.2.8
 pycparser==2.21
 Pygments==2.13.0
 pyparsing==3.0.9
+pyTelegramBotAPI==4.8.0
 python-dateutil==2.8.2
 pytz==2022.6
 pywin32==305
@@ -82,7 +83,8 @@ tensorboard-data-server==0.6.1
 tensorboard-plugin-wit==1.8.1
 tensorflow-estimator==2.10.0
 tensorflow-gpu==2.10.1
-tensorflow-io-gcs-filesystem==0.28.0
+tensorflow-io==0.25.0
+tensorflow-io-gcs-filesystem==0.25.0
 termcolor==2.1.1
 threadpoolctl==3.1.0
 tornado==6.2
