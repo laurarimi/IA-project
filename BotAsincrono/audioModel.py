@@ -3,20 +3,23 @@ import keras
 import zmq
 import zmq.asyncio
 import asyncio
-import aiofiles
 import librosa, librosa.display
-import matplotlib.pyplot as plt
 import numpy as np
 import os
 import PIL
 import PIL.Image
-import subprocess
 import aiofiles
 from scipy.io import wavfile
+import threading
+import concurrent.futures
 
-model                = keras.models.load_model("../Model/model-laura-ad-hoc-2.h5")
-validation_generator = tf.keras.utils.image_dataset_from_directory("data", color_mode="rgb",image_size=(128,157))
 
+model                = keras.models.load_model("./Model/modelNoImage.h5")
+
+th_executor = concurrent.futures.ThreadPoolExecutor(max_workers=8)
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
+lock = threading.Lock()
 
 ctx = zmq.asyncio.Context()
        
@@ -26,45 +29,58 @@ socket.bind("tcp://*:9999")
 async def recv_and_process():
     while True:
         msg = await socket.recv_multipart()
-        await process(msg)
-        socket.send(b"")
+        loop = asyncio.get_event_loop()
+        await asyncio.wait([loop.run_in_executor(th_executor, process, msg)])
+        await socket.send_string("")
 
-async def process(msg):
+            
+
+def fragmentation(file):    
+    fs, signal = wavfile.read(file) 
+    signal_len = len(signal) 
+    segment_size_t = 3 # segment size in seconds 
+    segment_size = segment_size_t * fs # segment size in samples # Break signal into list of segments in a single-line Python code 
+    segments = np.array([signal[x:x + segment_size] for x in np.arange( 0 , signal_len, segment_size)]) # Save each segment in a seperate filename 
+    for iS, s in enumerate(segments): 
+        wavfile.write(file,fs, s)
+    print("Guardado")
+
+desiredLength = 16000 * 8
+
+def generateMELSpectrogram(file, emotion):
+    signal, sr = librosa.load(file)    
+    padding = desiredLength - len(signal) #cantidad de tiempo que falta
+    if(padding < 0):
+        return None
+    signal = np.concatenate([np.zeros((padding)), signal])
+    mel_signal = librosa.feature.melspectrogram(y=signal, sr=sr, hop_length=512, n_fft=2048)
+    spectrogram = np.abs(mel_signal)
+    power_to_db = np.expand_dims(librosa.power_to_db(spectrogram, ref=np.min), axis=2)
+    return power_to_db
+
+
+def process(msg):
     chat_id = int.from_bytes(msg[0], 'big')
     messageReplyId = int.from_bytes(msg[1], 'big')
     text = msg[2].decode('UTF-8')
     cEmotion = int.from_bytes(msg[3], 'big')
     if(f"{chat_id}" not in os.listdir("./Files/")):    
         os.mkdir(f"./Files/{chat_id}")
-    async with aiofiles.open(f"./Files/{chat_id}/{messageReplyId}.oga", 'wb') as f:
-        await f.write(msg[-1])
-    os.system(f'ffmpeg -i ./Files/{chat_id}/{messageReplyId}.oga ./Files/{chat_id}/{messageReplyId}.wav')
+    with open(f"./Files/{chat_id}/{messageReplyId}.oga", 'wb') as f:
+            f.write(msg[-1])
+    
+    os.system(f'ffmpeg -i ./Files/{chat_id}/{messageReplyId}.oga ./Files/{text}/{messageReplyId}.wav')
     os.remove(f"./Files/{chat_id}/{messageReplyId}.oga")
-    fs, signal = wavfile.read( f"./Files/{chat_id}/{messageReplyId}.wav") 
-    #signal = signal / ( 2 ** 15 ) 
-    signal_len = len(signal) 
-    segment_size_t = 3 # segment size in seconds 
-    segment_size = segment_size_t * fs # segment size in samples # Break signal into list of segments in a single-line Python code 
-    segments = np.array([signal[x:x + segment_size] for x in np.arange( 0 , signal_len, segment_size)]) # Save each segment in a seperate filename 
-
-    for iS, s in enumerate(segments): 
-        audio_1 = wavfile.write( f"./Files/{chat_id}/{messageReplyId}.wav" .format(segment_size_t * iS, segment_size_t * (iS + 1 )),fs, (s))
-    print("Guardado")
-
-    signal, sr = librosa.load(f'./Files/{chat_id}/{messageReplyId}.wav')
-    mel_signal = librosa.feature.melspectrogram(y=signal, sr=sr, hop_length=512, n_fft=2048)
-    spectrogram = np.abs(mel_signal)
-    power_to_db = librosa.power_to_db(spectrogram, ref=np.max)
-    plt.axis('off')
-    librosa.display.specshow(power_to_db, sr=sr, cmap="magma",hop_length=512)
-    path = f"./Files/{text}/{chat_id}{messageReplyId}.png"
-    plt.savefig(path, bbox_inches='tight', pad_inches=0)
-    await train(path, text, cEmotion)
+    fragmentation((f"./Files/{text}/{messageReplyId}.wav"))
+    matrix = generateMELSpectrogram(f"./Files/{chat_id}/{messageReplyId}.wav", text)
+    np.save(f'./Files/{text}/{messageReplyId}', matrix)
+    if(matrix is not None):
+        return train(matrix, cEmotion)
 
 
-async def train(path, text, cEmotion):
-    im = PIL.Image.open(path)
-    a = np.asarray(im)[:,:,:3]
-    model.fit(np.expand_dims(a, axis=0), np.array([cEmotion]), validation_data=validation_generator)
+def train(matrix, cEmotion):
+    lock.acquire()
+    model.fit(np.expand_dims(matrix, axis=0), np.array([cEmotion]))
+    lock.release()
 
 asyncio.run(recv_and_process())

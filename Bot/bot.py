@@ -40,7 +40,7 @@ def processInput(message):
     for emotion in emotions:
         markup[emotion] = {'callback_data': emotion}
     markup = telebot.util.quick_markup(markup, row_width=2)
-    sentMessage = bot.send_message(message.chat.id, "Choose one emotion:",reply_to_message_id=message.id,reply_markup=markup)
+    sentMessage = bot.send_message(message.chat.id, "Escoge una emoción:",reply_to_message_id=message.id,reply_markup=markup)
     try:
         files[message.chat.id][message.id] = file
     except:
@@ -76,7 +76,7 @@ def callback(call):
         a = np.asarray(im)[:,:,:3]
         print(model.fit(np.expand_dims(a, axis=0), np.array([emotions.index(text)])))
         bot.delete_message(chat_id=chat_id, message_id=call.message.id)
-        bot.send_message( chat_id, "Your audio has been processed. Thank you :)")
+        bot.send_message( chat_id, "Tu audio ha sido procesado. Gracias :)")
     
 ''' 
 @bot.message_handler(func=lambda message: message.reply_to_message is not None)
