@@ -42,20 +42,20 @@ to_predict = list()
 
 
 info = '''
-        Hola, soy EMOTION4ALLBOT.
+Hola, soy EMOTION4ALLBOT.
 
-        Soy un bot diseñado por los alumnos Carlos March, Laura Rivero y Mario Rico de la politécnica de Valencia para generar una base de datos de audios junto con el sentimiento que tienen asociado, con el fin de poder usar estos datos para entrenar una inteligencia artificial que pueda predecir el sentimiento asociado a un audio y poder ayudar a las personas que sufren el transtorno de espectro autista a entender el mundo que los rodea.
+Soy un bot diseñado por los alumnos Carlos March, Laura Rivero y Mario Rico de la Universitat Politécnica de Valencia (UPV) para generar una base de datos de audios junto con el sentimiento que tienen asociado, con el fin de poder usar estos datos para entrenar una inteligencia artificial que pueda predecir el sentimiento asociado a un audio y poder ayudar a las personas que sufren el transtorno de espectro autista a entender el mundo que los rodea.
 
-        Siempre que quieras ayudarnos solo tienes que seguir los siguientes tres pasos:
+Siempre que quieras ayudarnos solo tienes que seguir los siguientes tres pasos:
 
-        1. Envia el mensaje \status (o pulsa sobre él), para obtener la lista de los sentimientos de los cuales necesitamos audios en ese momento. Como se reciben muchos audios necesitamos tener más o menos la misma cantidad de audios de cada sentimiento, por eso limitamos los sentimientos que necesitamos. 
+1. Envia el mensaje \status (o pulsa sobre él), para obtener la lista de los sentimientos de los cuales necesitamos audios en ese momento. Como se reciben muchos audios necesitamos tener más o menos la misma cantidad de audios de cada sentimiento, por eso limitamos los sentimientos que necesitamos. 
 
-        2. Envia un audio, con una duración máxima de 7 segundos. Normalmente frases con más de tres o cuatro segundos pueden tener más de un sentimiento relacionado y eso puede dificultar el proceso de entrenamiento de la inteligencia artificial.
+2. Envia un audio, con una duración máxima de 7 segundos. Normalmente frases con más de tres o cuatro segundos pueden tener más de un sentimiento relacionado y eso puede dificultar el proceso de entrenamiento de la inteligencia artificial.
 
-        3. Selecciona de la lista de opciones que se te enviarán el sentimiento que más se acerca al audio. Si te has equivocado, el audio no es correcto o no se ajusta a ningún sentimiento, no te preocupes, hay una opción extra llamada "No procesar" que permite descartar ese audio.
+3. Selecciona de la lista de opciones que se te enviarán el sentimiento que más se acerca al audio. Si te has equivocado, el audio no es correcto o no se ajusta a ningún sentimiento, no te preocupes, hay una opción extra llamada "No procesar" que permite descartar ese audio.
 
-        Desde el equipo te damos las gracias por ayudarnos y sería de mucha ayuda que compartieses esta herramienta :)
-    '''    
+Desde el equipo te damos las gracias por ayudarnos y sería de mucha ayuda que compartieses esta herramienta :)
+'''    
 
 
 async def from_oga_to_wav(filename):
@@ -73,7 +73,7 @@ async def send_welcome(message):
 @bot.message_handler(commands=['predict'])
 async def predict_command(message):
     markup = telebot.types.ForceReply()
-    msg = await bot.reply_to(message,"Reply to this message with and audio",reply_markup=markup)
+    msg = await bot.reply_to(message,"Responde a este mensaje con un audio",reply_markup=markup)
     to_predict.append(msg.id)
 
 
@@ -85,7 +85,7 @@ async def showStatus(message):
     for emotion in emotions:
         if emotionsSize[emotion] < minEmotioSize + threshold:
             res.append(emotion)
-    await bot.reply_to(message, f"The current missing emotions, which u can send an audio, are: {', '.join(res)}.\n Send one please :)")
+    await bot.reply_to(message, f"Las emociones que nos hacen falta en este momento son: {', '.join(res)}.\n Envianos una porfa :)")
         
 
 # Handle the reception of an audio and voice message
@@ -104,7 +104,7 @@ async def processInput(message):
                 downloaded_file
             ])
             msg = await socketPred.recv_multipart()
-            await bot.reply_to(message, f"Prediction:{emotions[int.from_bytes(msg[0], 'big')]}\nConfidence:{0:.2f}".format(struct.unpack('f',msg[1])[0]*100))
+            await bot.reply_to(message, f"Predicción:{emotions[int.from_bytes(msg[0], 'big')]}\nProbabilidad:{0:.2f}".format(struct.unpack('f',msg[1])[0]*100))
     else:
         markup = {}
         minEmotioSize = emotionsSize[min(emotionsSize, key=emotionsSize.get)]
@@ -113,7 +113,7 @@ async def processInput(message):
                 markup[emotion] = {'callback_data': emotion}
         markup['No Procesar'] = {'callback_data': "No procesar"}
         markup = telebot.util.quick_markup(markup, row_width=2)
-        await bot.send_message(message.chat.id, "Choose one emotion:",reply_to_message_id=message.id,reply_markup=markup)
+        await bot.send_message(message.chat.id, "Escoge una emoción:",reply_to_message_id=message.id,reply_markup=markup)
 
 # Handle the feeling selected by the user
 @bot.callback_query_handler(func=lambda call: True)
@@ -123,7 +123,7 @@ async def callback(call):
         chat_id      = call.message.chat.id
         messageReplyId = call.message.reply_to_message.id
         await bot.delete_message(chat_id=chat_id, message_id=call.message.id)
-        await bot.send_message( chat_id, "Your audio has been processed. Thank you :)")
+        await bot.send_message( chat_id, "Tu audio ha sido procesado. Gracias <3 :)")
         # llamada a la función que envia la imagen al modelo
         file_info = await bot.get_file(call.message.reply_to_message.voice.file_id)
         downloaded_file = await bot.download_file(file_info.file_path)
@@ -138,7 +138,7 @@ async def callback(call):
         await socketVGG.recv_string()
         emotionsSize[text] += 1
     else:
-        await bot.send_message( chat_id, "Try it again :)")
+        await bot.send_message( chat_id, "Intentalo de nuevo :)")
 
 # Initialize the bot
 import asyncio
