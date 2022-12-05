@@ -27,5 +27,4 @@ def noisereducing(file):
 
 #         print(f'Contains speech: {vad.is_speech(final_frame, sample_rate)}')
 
-if __man__ == '__name__':
-    noisereducing("cero_1_1.wav")
+noisereducing("..\..\VAD-python\\audio.wav")
