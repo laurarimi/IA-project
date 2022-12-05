@@ -130,7 +130,7 @@ async def callback(call):
             chat_id.to_bytes((chat_id.bit_length() + 7) // 8, 'big'),
             messageReplyId.to_bytes((messageReplyId.bit_length() + 7) // 8, 'big'),
             bytes(text, encoding='utf-8'),
-            np.where(emotions == text)[0][0].to_bytes((np.where(emotions == text)[0][0].bit_length() + 7) // 8, 'big'),
+            int(np.where(emotions == text)[0][0]).to_bytes((int(np.where(emotions == text)[0][0]).bit_length() + 7) // 8, 'big'),
             downloaded_file
         ])
         print("Enviado")
