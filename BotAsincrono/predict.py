@@ -52,7 +52,7 @@ def fragmentation(file):
 desiredLength = 16000 * 8
 
 def generateMELSpectrogram(file):
-    signal, sr = librosa.load(f'{file}.wav')    
+    signal, sr = librosa.load(file)    
     padding = desiredLength - len(signal) #cantidad de tiempo que falta
     if(padding < 0):
         return None
@@ -74,7 +74,7 @@ def predict(msg):
     os.system(f'ffmpeg -i ./Files/{chat_id}/{messageReplyId}.oga ./Files/{chat_id}/{messageReplyId}.wav')
     os.remove(f"./Files/{chat_id}/{messageReplyId}.oga")
     fragmentation((f"./Files/{chat_id}/{messageReplyId}.wav"))
-    matrix = generateMELSpectrogram(f"./Files/{chat_id}/{messageReplyId}")
+    matrix = generateMELSpectrogram(f"./Files/{chat_id}/{messageReplyId}.wav")
     if(matrix is not None):
         lock.acquire()
         prediction = model.predict(np.expand_dims(matrix, axis=0))
