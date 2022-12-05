@@ -42,7 +42,7 @@ def fragmentation(file):
     segment_size = segment_size_t * fs # segment size in samples # Break signal into list of segments in a single-line Python code 
     segments = np.array([signal[x:x + segment_size] for x in np.arange( 0 , signal_len, segment_size)]) # Save each segment in a seperate filename 
     for iS, s in enumerate(segments): 
-        wavfile.write(file,fs, (s))
+        wavfile.write(file,fs, s)
     print("Guardado")
 
 desiredLength = 16000 * 8
