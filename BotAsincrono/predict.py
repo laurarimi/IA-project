@@ -30,7 +30,6 @@ async def recv_and_process():
         loop = asyncio.get_event_loop()
         completed, _ = await asyncio.wait([loop.run_in_executor(th_executor, predict, msg)])
         pred = completed.pop().result()
-        print(pred)
         index = int(np.argmax(pred))
         await socket.send_multipart([
             index.to_bytes((index.bit_length() + 7) // 8, 'big'),
