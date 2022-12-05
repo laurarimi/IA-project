@@ -72,7 +72,7 @@ def process(msg):
     os.system(f'ffmpeg -i ./Files/{chat_id}/{messageReplyId}.oga ./Files/{text}/{messageReplyId}.wav')
     os.remove(f"./Files/{chat_id}/{messageReplyId}.oga")
     fragmentation((f"./Files/{text}/{messageReplyId}.wav"))
-    matrix = generateMELSpectrogram(f"./Files/{chat_id}/{messageReplyId}.wav", text)
+    matrix = generateMELSpectrogram(f"./Files/{text}/{messageReplyId}.wav", text)
     np.save(f'./Files/{text}/{messageReplyId}', matrix)
     if(matrix is not None):
         return train(matrix, cEmotion)
