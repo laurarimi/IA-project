@@ -48,7 +48,7 @@ def fragmentation(file):
 desiredLength = 16000 * 8
 
 def generateMELSpectrogram(file, emotion):
-    signal, sr = librosa.load(f'./Files/{file}.wav')    
+    signal, sr = librosa.load(file)    
     padding = desiredLength - len(signal) #cantidad de tiempo que falta
     if(padding < 0):
         return None
@@ -69,10 +69,11 @@ def process(msg):
     with open(f"./Files/{chat_id}/{messageReplyId}.oga", 'wb') as f:
             f.write(msg[-1])
     
-    os.system(f'ffmpeg -i ./Files/{chat_id}/{messageReplyId}.oga ./Files/{chat_id}/{messageReplyId}.wav')
+    os.system(f'ffmpeg -i ./Files/{chat_id}/{messageReplyId}.oga ./Files/{text}/{messageReplyId}.wav')
     os.remove(f"./Files/{chat_id}/{messageReplyId}.oga")
-    fragmentation((f"./Files/{chat_id}/{messageReplyId}.wav"))
-    matrix = generateMELSpectrogram(f"{chat_id}/{messageReplyId}", text)
+    fragmentation((f"./Files/{text}/{messageReplyId}.wav"))
+    matrix = generateMELSpectrogram(f"./Files/{chat_id}/{messageReplyId}.wav", text)
+    np.save(f'./Files/{text}/{messageReplyId}', matrix)
     if(matrix is not None):
         return train(matrix, cEmotion)
 
