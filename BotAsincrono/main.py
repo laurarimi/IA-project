@@ -28,7 +28,7 @@ socketPred.connect(f"tcp://{remoteIPPred}:{remotePortPred}")
 
 token = "5935648980:AAEuRoMJVCKb1RFSFdN9Z9UinxrBNnz4TYo"
 bot   = AsyncTeleBot(token=token)
-emotions = np.array(["angry", "fearful", "happy", "sad", "surprised"])
+emotions = np.array(["angry", "fearful", "happy", "sad", "surprised", "neutral"])
 emotionsSize ={
     "angry" : 384,
     "fearful" : 192,
