@@ -14,10 +14,14 @@ import struct
 import threading
 from scipy.io import wavfile
 import concurrent.futures
+import pickle
 
 model = keras.models.load_model("./Model/modelNoImage.h5")
 lock = threading.Lock()
 th_executor = concurrent.futures.ThreadPoolExecutor(max_workers=8)
+
+with open('scaler.pickle', 'rb') as f:
+    scaler = pickle.load(f)
 
 ctx = zmq.asyncio.Context()
        
@@ -74,6 +78,7 @@ def predict(msg):
     fragmentation((f"./Files/{chat_id}/{messageReplyId}.wav"))
     matrix = generateMELSpectrogram(f"./Files/{chat_id}/{messageReplyId}.wav")
     if(matrix is not None):
+        matrix = scaler.transform(matrix)
         lock.acquire()
         prediction = model.predict(np.expand_dims(matrix, axis=0))
         lock.release()
