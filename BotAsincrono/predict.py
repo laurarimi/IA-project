@@ -14,10 +14,14 @@ import struct
 import threading
 from scipy.io import wavfile
 import concurrent.futures
+import pickle
 
 model = keras.models.load_model("./Model/modelNoImage.h5")
 lock = threading.Lock()
 th_executor = concurrent.futures.ThreadPoolExecutor(max_workers=8)
+
+with open('scaler.pickle', 'rb') as f:
+    scaler = pickle.load(f)
 
 ctx = zmq.asyncio.Context()
        
@@ -30,8 +34,8 @@ async def recv_and_process():
         loop = asyncio.get_event_loop()
         completed, _ = await asyncio.wait([loop.run_in_executor(th_executor, predict, msg)])
         pred = completed.pop().result()
-        print(pred)
         index = int(np.argmax(pred))
+        print(pred[0,index])
         await socket.send_multipart([
             index.to_bytes((index.bit_length() + 7) // 8, 'big'),
             struct.pack("f", pred[0,index])
@@ -52,7 +56,7 @@ def fragmentation(file):
 desiredLength = 16000 * 8
 
 def generateMELSpectrogram(file):
-    signal, sr = librosa.load(f'{file}.wav')    
+    signal, sr = librosa.load(file)    
     padding = desiredLength - len(signal) #cantidad de tiempo que falta
     if(padding < 0):
         return None
@@ -60,8 +64,6 @@ def generateMELSpectrogram(file):
     mel_signal = librosa.feature.melspectrogram(y=signal, sr=sr, hop_length=512, n_fft=2048)
     spectrogram = np.abs(mel_signal)
     power_to_db = np.expand_dims(librosa.power_to_db(spectrogram, ref=np.min), axis=2)
-    print(power_to_db)
-    print(power_to_db.shape)
     return power_to_db
 
 def predict(msg):
@@ -74,13 +76,12 @@ def predict(msg):
     os.system(f'ffmpeg -i ./Files/{chat_id}/{messageReplyId}.oga ./Files/{chat_id}/{messageReplyId}.wav')
     os.remove(f"./Files/{chat_id}/{messageReplyId}.oga")
     fragmentation((f"./Files/{chat_id}/{messageReplyId}.wav"))
-    matrix = generateMELSpectrogram(f"./Files/{chat_id}/{messageReplyId}")
+    matrix = generateMELSpectrogram(f"./Files/{chat_id}/{messageReplyId}.wav")
     if(matrix is not None):
+        matrix = scaler.transform(matrix)
         lock.acquire()
         prediction = model.predict(np.expand_dims(matrix, axis=0))
         lock.release()
-    #os.remove(f"./temp/{chat_id}{messageReplyId}.oga")
-    #os.remove(f"./temp/{chat_id}{messageReplyId}.png")
     return prediction
 
 asyncio.run(recv_and_process())

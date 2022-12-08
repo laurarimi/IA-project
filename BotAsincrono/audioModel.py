@@ -12,7 +12,7 @@ import aiofiles
 from scipy.io import wavfile
 import threading
 import concurrent.futures
-
+import pickle
 
 model                = keras.models.load_model("./Model/modelNoImage.h5")
 
@@ -20,6 +20,9 @@ th_executor = concurrent.futures.ThreadPoolExecutor(max_workers=8)
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 lock = threading.Lock()
+
+with open('scaler.pickle', 'rb') as f:
+    scaler = pickle.load(f)
 
 ctx = zmq.asyncio.Context()
        
@@ -80,6 +83,7 @@ def process(msg):
 
 def train(matrix, cEmotion):
     lock.acquire()
+    matrix = scaler.transform(matrix)
     model.fit(np.expand_dims(matrix, axis=0), np.array([cEmotion]))
     lock.release()
 

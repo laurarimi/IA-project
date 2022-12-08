@@ -28,7 +28,7 @@ socketPred.connect(f"tcp://{remoteIPPred}:{remotePortPred}")
 
 token = "5935648980:AAEuRoMJVCKb1RFSFdN9Z9UinxrBNnz4TYo"
 bot   = AsyncTeleBot(token=token)
-emotions = np.array(["angry", "fearful", "happy", "sad", "surprised"])
+emotions = np.array(["angry", "fearful", "happy", "sad", "surprised", "neutral"])
 emotionsSize ={
     "angry" : 384,
     "fearful" : 192,
@@ -103,7 +103,7 @@ async def processInput(message):
                 downloaded_file
             ])
             msg = await socketPred.recv_multipart()
-            await bot.reply_to(message, f"Predicción:{emotions[int.from_bytes(msg[0], 'big')]}\nProbabilidad:{0:.2f}".format(struct.unpack('f',msg[1])[0]*100))
+            await bot.reply_to(message, f"Predicción:{emotions[int.from_bytes(msg[0], 'big')]}\nProbabilidad: %.2f" % (struct.unpack('f',msg[1])[0]*100))
     else:
         markup = {}
         minEmotioSize = emotionsSize[min(emotionsSize, key=emotionsSize.get)]
