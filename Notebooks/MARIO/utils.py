@@ -419,10 +419,9 @@ def generate_sound(notes):
     global_duration = [2]
 
     sound = 0
-
     for i in notes:
         if i != []:
             sound = sound + utils.get_song_data([i], global_duration, 2,
                                  factor, length, decay, sustain_level) 
-    wavfile.write('PRUEBAS.wav', 44100, data.astype(np.int16))
+    wavfile.write('PRUEBAS2.wav', 44100, data.astype(np.int16))
      
