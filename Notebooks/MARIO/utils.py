@@ -233,8 +233,8 @@ def get_piano_notes():
     keys = np.array([x+str(y) for y in range(0,9) for x in octave])
     
     # Trim to standard 88 keys
-    start = np.where(keys == 'A1')[0][0]
-    end = np.where(keys == 'G4')[0][0]
+    start = np.where(keys == 'C1')[0][0]
+    end = np.where(keys == 'B4')[0][0]
     keys = keys[start:end+1]
     
     note_freqs = dict(zip(keys, [2**((n+1-49)/12)*base_freq for n in range(len(keys))]))
@@ -390,6 +390,7 @@ def create_matrix(columns=['A','B','C','D','E','F'], rows=['1','2','3','4']):
     
     return np.matrix(matriz).reshape(6,4).transpose()
 
+
 def generate_random_numbers():
     random_numbers = []
     for i in range(6):
@@ -423,5 +424,7 @@ def generate_sound(notes):
         if i != []:
             sound = sound + utils.get_song_data([i], global_duration, 2,
                                  factor, length, decay, sustain_level) 
-    wavfile.write('PRUEBAS2.wav', 44100, data.astype(np.int16))
+    wavfile.write('PRUEBAS2.wav', 44100, sound.astype(np.int16))
+
+
      
