@@ -405,7 +405,7 @@ def get_notes(emotions): #emotions is a vector of probabilities and we have to g
     notes_to_play = []
     for i in range(0,len(emotions)):
         p = emotions[i]
-        if p > 0.125 and p < 1:
+        if p > 0.125 and p <= 1:
             notes_to_play.append(notes[round(p*4)-1,i])
         else:
             notes_to_play.append([])
