@@ -1,5 +1,5 @@
 # IA-project
-Introduction:
+## Introduction:
 
 Autism Spectrum Disorder (ASD) is a developmental disorder that affects communication, social interaction, and behavior. Individuals with ASD often struggle to understand and interpret emotional cues from others, which can lead to difficulties in building relationships and functioning in social situations. Recent research has shown that artificial intelligence (AI) can be used to develop tools to assist individuals with ASD in detecting emotions in people around them. This project aims to develop an AI system that can detect emotions in individuals and translate them into sounds that can be heard through an implant, such as a cochlear implant.
 
